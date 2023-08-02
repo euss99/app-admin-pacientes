@@ -1,12 +1,15 @@
 <script setup>
+import { ref, reactive, watch, onMounted } from "vue";
+import { uid } from "uid";
+
 import Header from "./components/Header.vue";
 import Formulario from "./components/Formulario.vue";
-
-import { ref, reactive } from "vue";
+import Paciente from "./components/Paciente.vue";
 
 const pacientes = ref([]);
 
 const paciente = reactive({
+  id: null,
   nombreMascota: "",
   nombrePropietario: "",
   email: "",
@@ -14,9 +17,55 @@ const paciente = reactive({
   sintomas: "",
 });
 
+watch(
+  pacientes,
+  () => {
+    guardarLocalStorage();
+  },
+  { deep: true }
+);
+
+const guardarLocalStorage = () => {
+  localStorage.setItem("pacientes", JSON.stringify(pacientes.value));
+};
+
+onMounted(() => {
+  const pacientesStorage = JSON.parse(localStorage.getItem("pacientes"));
+
+  if (pacientesStorage) {
+    pacientes.value = pacientesStorage;
+  }
+});
+
 const guardarPaciente = () => {
-  console.log("Agregar paciente");
-  pacientes.value.push(paciente);
+  if (paciente.id) {
+    const index = pacientes.value.findIndex(
+      (pacienteState) => pacienteState.id === paciente.id
+    );
+
+    pacientes.value[index] = { ...paciente };
+  } else {
+    pacientes.value.push({ ...paciente, id: uid() }); // Se crea una copia del objeto paciente con el fin de que no se modifique el objeto original
+  }
+
+  paciente.nombreMascota = "";
+  paciente.nombrePropietario = "";
+  paciente.email = "";
+  paciente.alta = "";
+  paciente.sintomas = "";
+  paciente.id = null;
+};
+
+const actualizarPaciente = (id) => {
+  const pacienteEditar = pacientes.value.filter(
+    (paciente) => paciente.id === id
+  )[0];
+
+  Object.assign(paciente, pacienteEditar);
+};
+
+const eliminarPaciente = (id) => {
+  pacientes.value = pacientes.value.filter((paciente) => paciente.id !== id);
 };
 </script>
 
@@ -32,6 +81,7 @@ const guardarPaciente = () => {
         v-model:alta="paciente.alta"
         v-model:sintomas="paciente.sintomas"
         @guardar-paciente="guardarPaciente"
+        :id="paciente.id"
       />
 
       <div class="md:w-1/2 md:h-screen overflow-y-scroll">
@@ -39,7 +89,19 @@ const guardarPaciente = () => {
           Administra tus pacientes
         </h3>
 
-        <div v-if="pacientes.length > 0"></div>
+        <div v-if="pacientes.length > 0">
+          <p class="text-lg mt-5 text-center mb-10">
+            Información de
+            <span class="text-indigo-600 font-bold">pacientes</span>
+          </p>
+
+          <Paciente
+            v-for="paciente in pacientes"
+            :paciente="paciente"
+            @actualizar-paciente="actualizarPaciente"
+            @eliminar-paciente="eliminarPaciente"
+          />
+        </div>
         <p v-else class="mt-20 text-2xl text-center">No hay pacientes</p>
       </div>
     </div>
