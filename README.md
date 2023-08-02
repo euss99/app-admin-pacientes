@@ -57,6 +57,6 @@ Para utilizar está aplicación en tu entorno local, sigue estos pasos:
 4. Inicia el servidor de desarrollo: `npm run dev`
 5. Abre tu navegador y visita: `http://localhost:5173`
 
-¡Listo! Ahora puedes gestionar pacientes y su historial médico en está aplicación de manera eficiente.
+¡Listo! Ahora puedes gestionar pacientes en está aplicación de manera eficiente.
 
 ¡Que tengas una gran experiencia! 🐾
